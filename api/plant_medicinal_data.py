@@ -1,9 +1,7 @@
 import os
 
-class_list = os.listdir("..\Dataset\Indian Medicinal Leaves Image Datasets\Medicinal plant dataset")
-print(len(class_list))
-print(type(class_list))
-print(class_list)
+class_list = os.listdir("D:/Coding/MachineLearning/FloraFinder/Dataset/Indian Medicinal Leaves Image Datasets/Medicinal plant dataset")
+
 """
 Plant_Details = plant_data = {
     'Aloevera': [
@@ -875,6 +873,7 @@ Plant_Details = {
     ]
 } 
 
-print(len(Plant_Details))
+
 if __name__ == "__main__":
-    pass
+    class_list = list(Plant_Details.keys())
+    print(class_list)

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .plant-info {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .plant-info h2 {
+            color: #333;
+        }
+        .plant-info p {
+            margin-bottom: 10px;
+        }
+        .plant-info .disclaimer {
+            font-style: italic;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload Image</h1>
+    <form method="post" enctype="multipart/form-data" action="{% url 'home' %}">
+        {% csrf_token %}
+        <input type="file" name="image" accept="image/*" required>
+        <button type="submit">Upload</button>
+    </form>
+    {% if prediction != "" %}
+    <div class="plant-info">
+        {% if prediction %}
+        {% for p in prediction %}
+        <h2>{{ p.scientific_name }}</h2>
+        <p>{{ p.scientific_medicinal_properties }}</p>
+        <p><strong>Common Location:</strong> {{ p.common_location }}</p>
+        <p><strong>Popular Use Case:</strong> {{ p.popular_usecase }}</p>
+        <p><strong>Lament Medicinal Property:</strong> {{ p.lament_medicinal_property }}</p>
+        <p class="disclaimer"><strong>Disclaimer:</strong> {{ p.Disclaimer }}</p
+        {% endfor %}
+        {% endif %}
+    </div>
+    {% endif %}
+    
+</body>
+</html>

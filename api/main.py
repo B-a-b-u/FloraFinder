@@ -1,53 +1,50 @@
-# Import fast api
 from fastapi import FastAPI, UploadFile, File
-import uvicorn
+from fastapi.responses import JSONResponse
+from plant_medicinal_data import Plant_Details, class_list
+import tensorflow as tf
 from io import BytesIO
 from PIL import Image
 import numpy as np
-from  plant_medicinal_data import Plant_Details
+import uvicorn
+import pickle
 
-app = FastAPI() # Creating a instance
 
-food_items = {
-    "Indian" : ["dosa","Biriyani"],
-    "Japanese" : ["Dumplings","rice ball"],
-    "USA" : ["pizza","burgar"],
-}
+model = tf.keras.models.load_model("D:/Coding/MachineLearning/FloraFinder/models/model-3.keras")
+app = FastAPI()
 
-# Endpoint
 @app.get("/")
 async def home():
-    return "Hello World!"
+    return "Hello Everyone"
 
-@app.get("/items/{cuisine}")
-async def item_menu(cuisine : str):
-    if cuisine not in food_items:
-        return f"Only available cuisines are {list(food_items.keys())}"
-    return  food_items.get(cuisine)
 
-def read_file_as_image(data):
-    return np.array(Image.open(BytesIO(data)))
-
+def get_plant_name(plant_name):
+    return Plant_Details.get(plant_name)[0]
 
 @app.post("/predict")
-async def predict(file : UploadFile = File(...)):
-    image = read_file_as_image( await file.read())
-    image_batch= np.expand_dims(image,0)
-    print(image_batch[0].shape)
-    return "file uploaded"
+async def predict_image(file: UploadFile = File(...)):
+    try:
+        # Read the image file
+        contents = await file.read()
+        image = np.array(Image.open(BytesIO(contents)))
+        # print("Image : ",image)
 
+        # Preprocess the image
+        # Replace this preprocessing code with your own if needed
+        # image = image.resize((256, 256))  # Resize image
+        # image = np.array(image) / 255.0  # Normalize pixel values
 
-@app.get("/{plant}")
-async def get_plant(plant):
-    plant = Plant_Details.get(plant.strip())[0]
-    if plant:
-        return f"""{plant["scientific_name"]}  {plant["scientific_medicinal_properties"]}
-{plant["common_location"]}
-{plant["popular_usecase"]}
-{plant["Disclaimer"]}
-{plant["lament_medicinal_property"]}"""
-    else:
-        return f"Plant not found"
+        # Make prediction
+        print(model)
+        prediction = model.predict(np.expand_dims(image,0))
+        predicted_class_index = np.argmax(prediction)
+        conf = round(100 * (np.max(prediction[0])),2)
+        predicted_class = class_list[predicted_class_index]
+
+        return JSONResponse(content={"class": predicted_class,"confidence" : conf, "details ":get_plant_name(predicted_class)}, status_code=200)
+
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="localhost", port=8000)
+    uvicorn.run(app,host="localhost",port = 8000)
